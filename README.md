@@ -63,13 +63,66 @@ flowchart TD
 
 ### Prerequisites
 
-Install 
+Install [mise](https://mise.jdx.dev) to manage Python and tool versions, and [uv](https://docs.astral.sh/uv/) for package management:
+
 ```bash
-pip install scholarimpact
+# Install mise (manages Python + uv versions)
+curl https://mise.run | sh
+
+# Verify mise is on your PATH (follow the output instructions, then restart your shell)
+mise --version
+```
+
+Then install **_ScholarImpact_** as a standalone tool:
+
+```bash
+# Install Python 3.12 and uv via mise
+mise use --global python@3.12 uv@latest
+
+# Install scholarimpact as a uv tool (isolated, no virtualenv needed)
+uv tool install scholarimpact
+```
+
+Or if you prefer plain uv without mise:
+
+```bash
+pip install uv   # or: brew install uv
+uv tool install scholarimpact
 ```
 
 ## Caution
 This system is designed for academic research purposes and personal usage. Please use responsibly and in accordance with Google Scholar, OpenAlex, Altmetric terms of services with appropriate attribution.
+
+## Development Setup
+
+For contributors or local development from source:
+
+```bash
+# Clone the repository
+git clone https://github.com/abhishektiwari/scholarimpact.git
+cd scholarimpact
+
+# Install Python 3.12 and uv (versions pinned in .mise.toml)
+mise install
+
+# Create virtualenv and install all dependencies (including dev extras)
+uv sync --extra dev
+
+# Run the CLI from source
+uv run scholarimpact --help
+
+# Run tests
+uv run pytest
+
+# Launch the dashboard from source
+uv run ScholarImpact
+```
+
+> **Tip:** After `uv sync`, you can also activate the virtualenv directly:
+> ```bash
+> source .venv/bin/activate
+> scholarimpact --help
+> ```
 
 ## Step-by-Step Guide
 

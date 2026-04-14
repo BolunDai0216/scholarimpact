@@ -95,16 +95,13 @@ jobs:
       with:
         fetch-depth: 0
     
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v5
       with:
-        python-version: '3.11'
-    
+        python-version: '3.12'
+
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements-dev.txt
-        pip install -e .
+      run: uv sync
     
     - name: Set version for setuptools-scm
       run: |
@@ -115,7 +112,7 @@ jobs:
         echo "Created tag: ${{ needs.generate-version.outputs.version_tag }}"
     
     - name: Build package
-      run: make build
+      run: just build
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
