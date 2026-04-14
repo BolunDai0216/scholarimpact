@@ -37,10 +37,6 @@ dmypy.json
 # Ruff
 .ruff_cache/
 
-# uv
-#   It is generally recommended to include uv.lock in version control.
-#uv.lock
-
 # PyPI configuration
 .pypirc
 
@@ -51,7 +47,7 @@ dmypy.json
 src/scholarimpact/_version.py
 
 # Project data and local files
-data/*.json
+data/**/*.json
 example-dashboard/
 my-research-dashboard/
 .DS_Store
