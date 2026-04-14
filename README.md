@@ -106,7 +106,7 @@ cd scholarimpact
 mise install
 
 # Create virtualenv and install all dependencies (including dev extras)
-uv sync --extra dev
+uv sync
 
 # Run the CLI from source
 uv run scholarimpact --help
