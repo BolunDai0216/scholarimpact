@@ -20,7 +20,7 @@ flowchart TD
     B --> D[Altmetric API]
     C --> E[Enhanced Scholar Data]
     D --> E[Enhanced Scholar Data]
-    
+
     style A fill:#0ea5e9,stroke:#0ea5e9,color:#ffffff
     style C fill:#059669,stroke:#059669,color:#ffffff
     style D fill:#059669,stroke:#059669,color:#ffffff
@@ -34,24 +34,24 @@ flowchart TD
     B --> F[OpenAlex API]
     C --> D[Enhanced Citation Data]
     D --> E[Streamlit Dashboard]
-    
+
     C --> F[OpenAlex API]
     C --> G[Google Scholar Profiles of citing Authors]
     F --> D
     G --> D
-    
+
     F -.-> H[Author Affiliations]
     F -.-> I[Country Codes]
     F -.-> J[Research Domains]
     G -.-> K[Verified Email Domain]
     G -.-> L[Profile Details including Affiliations]
-    
+
     H --> D
     I --> D
     J --> D
     K --> D
     L --> D
-    
+
     style A fill:#ecebe3,stroke:#ecebe3,color:#3d3a2a
     style E fill:#cb785c,stroke:#cb785c,color:#ffffff
     style F fill:#059669,stroke:#059669,color:#ffffff
@@ -63,66 +63,43 @@ flowchart TD
 
 ### Prerequisites
 
-Install [mise](https://mise.jdx.dev) to manage Python and tool versions, and [uv](https://docs.astral.sh/uv/) for package management:
+Install [mise](https://mise.jdx.dev) to manage CLI tools (`uv`, `just`):
 
 ```bash
-# Install mise (manages Python + uv versions)
 curl https://mise.run | sh
-
-# Verify mise is on your PATH (follow the output instructions, then restart your shell)
+# Restart your shell, then verify
 mise --version
 ```
 
-Then install **_ScholarImpact_** as a standalone tool:
-
 ```bash
-# Install Python 3.12 and uv via mise
-mise use --global python@3.12 uv@latest
+# Clone the repo
+git clone https://github.com/abhishektiwari/scholarimpact.git
+cd scholarimpact
 
-# Install scholarimpact as a uv tool (isolated, no virtualenv needed)
-uv tool install scholarimpact
+# Install Python, uv, and just
+mise install
+
+# Install dependencies
+just install
 ```
 
-Or if you prefer plain uv without mise:
-
-```bash
-pip install uv   # or: brew install uv
-uv tool install scholarimpact
-```
 
 ## Caution
 This system is designed for academic research purposes and personal usage. Please use responsibly and in accordance with Google Scholar, OpenAlex, Altmetric terms of services with appropriate attribution.
 
 ## Development Setup
 
-For contributors or local development from source:
+Follow the Prerequisites steps above, then:
 
 ```bash
-# Clone the repository
-git clone https://github.com/abhishektiwari/scholarimpact.git
-cd scholarimpact
+just --list   # see all available commands
 
-# Install Python 3.12 and uv (versions pinned in .mise.toml)
-mise install
-
-# Create virtualenv and install all dependencies (including dev extras)
-uv sync
-
-# Run the CLI from source
-uv run scholarimpact --help
-
-# Run tests
-uv run pytest
-
-# Launch the dashboard from source
-uv run ScholarImpact
+just format   # format code with ruff
+just lint     # lint with ruff + mypy
+just test     # run pytest with coverage
+just check    # format + lint + test
+just build    # build wheel and sdist
 ```
-
-> **Tip:** After `uv sync`, you can also activate the virtualenv directly:
-> ```bash
-> source .venv/bin/activate
-> scholarimpact --help
-> ```
 
 ## Step-by-Step Guide
 
@@ -133,10 +110,7 @@ This approach creates a standalone project suitable for deployment to Streamlit 
 #### Step 1: Generate Dashboard Project
 
 ```bash
-# Generate a dashboard project
-scholarimpact generate-dashboard --output-dir my-research-dashboard --name app.py
-
-# Navigate to the generated folder
+uv run scholarimpact generate-dashboard --output-dir my-research-dashboard --name app.py
 cd my-research-dashboard
 ```
 
@@ -145,14 +119,10 @@ This creates a complete project structure with `app.py`, `requirements.txt`, `.s
 #### Step 2: Extract Author Publications
 
 ```bash
-# Extract your publications from Google Scholar (OpenAlex and Altmetric enabled by default)
-scholarimpact extract-author "YOUR_SCHOLAR_USER_ID"
+# Find your Scholar ID in your profile URL:
+# https://scholar.google.com/citations?user=YOUR_SCHOLAR_USER_ID
 
-# With email for higher OpenAlex rate limits (recommended)
-scholarimpact extract-author "YOUR_SCHOLAR_USER_ID" --openalex-email your.email@example.com
-
-# Or use full URL
-scholarimpact extract-author "https://scholar.google.com/citations?user=YOUR_SCHOLAR_USER_ID"
+uv run scholarimpact extract-author "YOUR_SCHOLAR_USER_ID" --openalex-email your.email@example.com
 ```
 
 This creates `data/author.json` with your publication list, enriched with OpenAlex and Altmetric metrics by default.
@@ -160,8 +130,7 @@ This creates `data/author.json` with your publication list, enriched with OpenAl
 #### Step 3: Crawl Citation Data
 
 ```bash
-# Crawl citations with OpenAlex enrichment
-scholarimpact crawl-citations data/author.json --openalex-email your.email@example.com
+uv run scholarimpact crawl-citations data/author.json --openalex-email your.email@example.com
 ```
 
 This creates `data/cites-{ID}.json` files for each publication.
@@ -169,24 +138,18 @@ This creates `data/cites-{ID}.json` files for each publication.
 #### Step 4: Test Locally
 
 ```bash
-# Run the dashboard locally
 streamlit run app.py
-
-# Or alternatively
-python app.py
 ```
 
-Open `http://localhost:8501`to view your dashboard.
+Open `http://localhost:8501` to view your dashboard.
 
-#### Step 5: Push your changes to a Github Repository
+#### Step 5: Push to GitHub
 
 ```bash
-# Initialize git repository
 git init
 git add .
 git commit -m "Initial research dashboard"
 
-# Create GitHub repository and push
 git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
 git branch -M main
 git push -u origin main
@@ -227,8 +190,8 @@ my-research-dashboard/
 
 To update citation data:
 
-1. Re-run step-2 and step-3 to update data files
-2. Commit changes and push them to your GitHub repository
+1. Re-run steps 2 and 3 to refresh data files
+2. Commit and push to your GitHub repository
 3. Streamlit Cloud will automatically detect changes and restart the app
 
 #### Tips for Streamlit Cloud Deployment
@@ -245,22 +208,19 @@ This approach is fastest for local analysis without deployment needs.
 #### Step 1: Extract Author Publications
 
 ```bash
-# Extract publications directly
-scholarimpact extract-author "YOUR_SCHOLAR_USER_ID"
+uv run scholarimpact extract-author "YOUR_SCHOLAR_USER_ID" --openalex-email your.email@example.com
 ```
 
 #### Step 2: Crawl Citation Data
 
 ```bash
-# Crawl citations
-scholarimpact crawl-citations data/author.json --openalex-email your.email@example.com
+uv run scholarimpact crawl-citations data/author.json --openalex-email your.email@example.com
 ```
 
 #### Step 3: Launch Dashboard
 
 ```bash
-# Run dashboard directly
-ScholarImpact
+uv run ScholarImpact
 ```
 
 The dashboard opens at `http://localhost:8501`.
@@ -272,7 +232,7 @@ The dashboard opens at `http://localhost:8501`.
 Extract author publications from Google Scholar with OpenAlex and Altmetric enrichment:
 
 ```bash
-scholarimpact extract-author [OPTIONS] SCHOLAR_ID
+uv run scholarimpact extract-author [OPTIONS] SCHOLAR_ID
 ```
 
 Arguments:
@@ -318,25 +278,25 @@ Altmetric enrichment adds (all fields prefixed with `altmetric_`):
 Examples:
 ```bash
 # Basic usage (OpenAlex and Altmetric enabled by default)
-scholarimpact extract-author "ABC123DEF"
+uv run scholarimpact extract-author "ABC123DEF"
 
 # With email for higher OpenAlex rate limits
-scholarimpact extract-author "ABC123DEF" --openalex-email your.email@example.com
+uv run scholarimpact extract-author "ABC123DEF" --openalex-email your.email@example.com
 
 # Disable Altmetric enrichment (keep OpenAlex)
-scholarimpact extract-author "ABC123DEF" --no-altmetric
+uv run scholarimpact extract-author "ABC123DEF" --no-altmetric
 
 # Disable all enrichment (Google Scholar only)
-scholarimpact extract-author "ABC123DEF" --no-openalex --no-altmetric
+uv run scholarimpact extract-author "ABC123DEF" --no-openalex --no-altmetric
 
 # Limit to first 20 papers with 3-second delays
-scholarimpact extract-author "ABC123DEF" --max-papers 20 --delay 3
+uv run scholarimpact extract-author "ABC123DEF" --max-papers 20 --delay 3
 
-# Custom output file with email for higher limits
-scholarimpact extract-author "ABC123DEF" --output-file data/my_author.json --openalex-email your.email@example.com
+# Custom output file
+uv run scholarimpact extract-author "ABC123DEF" --output-file data/my_author.json --openalex-email your.email@example.com
 
 # Full URL format
-scholarimpact extract-author "https://scholar.google.com/citations?user=ABC123DEF"
+uv run scholarimpact extract-author "https://scholar.google.com/citations?user=ABC123DEF"
 ```
 
 ### `scholarimpact crawl-citations` Command
@@ -344,7 +304,7 @@ scholarimpact extract-author "https://scholar.google.com/citations?user=ABC123DE
 Crawl citations with OpenAlex integration:
 
 ```bash
-scholarimpact crawl-citations [OPTIONS] AUTHOR_JSON
+uv run scholarimpact crawl-citations [OPTIONS] AUTHOR_JSON
 ```
 
 Arguments:
@@ -362,16 +322,16 @@ Options:
 Examples:
 ```bash
 # Basic usage with OpenAlex
-scholarimpact crawl-citations data/author.json --openalex-email me@university.edu
+uv run scholarimpact crawl-citations data/author.json --openalex-email me@university.edu
 
 # Custom delays
-scholarimpact crawl-citations data/author.json --delay-min 3 --delay-max 8
+uv run scholarimpact crawl-citations data/author.json --delay-min 3 --delay-max 8
 
 # Custom output directory
-scholarimpact crawl-citations data/author.json --output-dir custom_data
+uv run scholarimpact crawl-citations data/author.json --output-dir custom_data
 
 # Limit citations per paper
-scholarimpact crawl-citations data/author.json --max-citations 100
+uv run scholarimpact crawl-citations data/author.json --max-citations 100
 ```
 
 ### `ScholarImpact` Command
@@ -379,7 +339,7 @@ scholarimpact crawl-citations data/author.json --max-citations 100
 Launch the interactive dashboard:
 
 ```bash
-ScholarImpact [OPTIONS]
+uv run ScholarImpact [OPTIONS]
 ```
 
 Options:
@@ -391,17 +351,10 @@ Options:
 
 Examples:
 ```bash
-# Basic usage
-ScholarImpact
-
-# Custom port
-ScholarImpact --port 8502
-
-# External access
-ScholarImpact --address 0.0.0.0
-
-# Different data directory
-ScholarImpact --data-dir custom_data
+uv run ScholarImpact                        # basic usage
+uv run ScholarImpact --port 8502            # custom port
+uv run ScholarImpact --address 0.0.0.0     # external access
+uv run ScholarImpact --data-dir custom_data # different data directory
 ```
 
 ### `scholarimpact quick-start` Command
@@ -409,7 +362,7 @@ ScholarImpact --data-dir custom_data
 Complete analysis pipeline from Scholar ID to dashboard:
 
 ```bash
-scholarimpact quick-start [OPTIONS] SCHOLAR_ID
+uv run scholarimpact quick-start [OPTIONS] SCHOLAR_ID
 ```
 
 Arguments:
@@ -424,14 +377,9 @@ Options:
 
 Examples:
 ```bash
-# Complete pipeline with dashboard
-scholarimpact quick-start "ABC123DEF" --openalex-email me@university.edu
-
-# Skip dashboard launch
-scholarimpact quick-start "ABC123DEF" --no-dashboard
-
-# Custom output directory
-scholarimpact quick-start "ABC123DEF" --output-dir results
+uv run scholarimpact quick-start "ABC123DEF" --openalex-email me@university.edu
+uv run scholarimpact quick-start "ABC123DEF" --no-dashboard
+uv run scholarimpact quick-start "ABC123DEF" --output-dir results
 ```
 
 ### `scholarimpact generate-dashboard` Command
@@ -439,7 +387,7 @@ scholarimpact quick-start "ABC123DEF" --output-dir results
 Generate a standalone dashboard project for deployment to Streamlit Cloud:
 
 ```bash
-scholarimpact generate-dashboard [OPTIONS]
+uv run scholarimpact generate-dashboard [OPTIONS]
 ```
 
 Options:
@@ -452,14 +400,9 @@ Options:
 
 Examples:
 ```bash
-# Generate dashboard in current directory
-scholarimpact generate-dashboard
-
-# Custom output directory and title
-scholarimpact generate-dashboard --output-dir my-project --title "Research Impact Analysis"
-
-# Custom data directory location
-scholarimpact generate-dashboard --data-dir ../citation_data --name app.py
+uv run scholarimpact generate-dashboard
+uv run scholarimpact generate-dashboard --output-dir my-project --title "Research Impact Analysis"
+uv run scholarimpact generate-dashboard --data-dir ../citation_data --name app.py
 ```
 
 This command generates:
